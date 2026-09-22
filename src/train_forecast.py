@@ -55,10 +55,37 @@ model.fit(prophet_df)
 future = model.make_future_dataframe(periods=12, freq='MS')
 forecast = model.predict(future)
 
-os.makedirs("data", exist_ok=True)
-forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].to_csv("data/semiconductor_forecast.csv", index=False)
+fig, ax = plt.subplots(figsize=(12, 6))
 
-model.plot(forecast)
-plt.title("Semiconductor Production Index: Historical vs 12-Month Forecast")
-plt.savefig("data/forecast_plot.png")
-print("Forecast and plot saved successfully!")
+# Plot historical actuals as black dots
+ax.plot(prophet_df['ds'], prophet_df['y'], 'k.', label='Historical Production Index', alpha=0.6)
+
+# Plot forecasted trend line (yhat)
+ax.plot(forecast['ds'], forecast['yhat'], color='#1f77b4', linewidth=2, label='12-Month Trend Forecast')
+
+# Plot uncertainty/confidence interval band (yhat_lower to yhat_upper)
+ax.fill_between(
+    forecast['ds'], 
+    forecast['yhat_lower'], 
+    forecast['yhat_upper'], 
+    color='#1f77b4', 
+    alpha=0.2, 
+    label='80% Confidence Interval'
+)
+
+# Professional Titles and Labels
+ax.set_title("U.S. Semiconductor & Electronic Component Production Index\nHistorical Trend & 12-Month Out-of-Sample Forecast", fontsize=14, fontweight='bold', pad=15)
+ax.set_xlabel("Timeline (Years)", fontsize=11, labelpad=10)
+ax.set_ylabel("Production Index (2017 = 100)", fontsize=11, labelpad=10)
+
+# Add Grid Lines for Legibility
+ax.grid(True, linestyle='--', alpha=0.5)
+
+# Add a Clean Key / Legend
+ax.legend(loc='upper left', frameon=True, facecolor='white', framealpha=0.9, fontsize=10)
+
+# Layout adjustment and save
+plt.tight_layout()
+os.makedirs("data", exist_ok=True)
+plt.savefig("data/forecast_plot.png", dpi=300)
+print("Enhanced forecast plot successfully saved to 'data/forecast_plot.png'.")
